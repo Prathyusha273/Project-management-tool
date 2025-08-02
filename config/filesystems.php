@@ -73,7 +73,7 @@ return [
     */
 
     'links' => [
-        // public_path('storage') => storage_path('app/public'), // Commented out since we're using direct storage
+         public_path('storage') => storage_path('app/public'), // Commented out since we're using direct storage
     ],
 
 ];

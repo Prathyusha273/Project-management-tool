@@ -147,31 +147,28 @@ class UserController extends Controller
             'user_id' => $user->id,
         ]);
         try {
-//            if ($require_ev == 1) {
-//                $user->notify(new VerifyEmail($user));
-//            }
-
-
+            if ($require_ev == 1) {
+                $user->notify(new VerifyEmail($user));
+            }
             $workspace->users()->attach($user->id);
             $user->assignRole($request->input('role'));
-//            if (isEmailConfigured()) {
-//                $account_creation_template = Template::where('type', 'email')
-//                    ->where('name', 'account_creation')
-//                    ->first();
-//                if (!$account_creation_template || ($account_creation_template->status !== 0)) {
-//                    $user->notify(new AccountCreation($user, $password));
-//                }
-//            }
+            if (isEmailConfigured()) {
+                $account_creation_template = Template::where('type', 'email')
+                    ->where('name', 'account_creation')
+                    ->first();
+                if (!$account_creation_template || ($account_creation_template->status !== 0)) {
+                    $user->notify(new AccountCreation($user, $password));
+                }
+            }
             Session::flash('message', 'User created successfully.');
             return response()->json(['error' => false, 'id' => $user->id]);
-
         } catch (TransportExceptionInterface $e) {
-//            $user = User::findOrFail($user->id);
+            $user = User::findOrFail($user->id);
             $user->delete();
             return response()->json(['error' => true, 'message' => 'User TransportException couldn\'t be created, please check email settings.']);
         } catch (Throwable $e) {
             // Catch any other throwable, including non-Exception errors
-//            $user = User::findOrFail($user->id);
+            $user = User::findOrFail($user->id);
             $user->delete();
             return response()->json(['error' => true, 'message' => $e->getMessage()]);
         }
