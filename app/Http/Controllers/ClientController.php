@@ -53,106 +53,13 @@ class ClientController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-    {
-        $adminId = getAdminIdByUserRole();
-        ini_set('max_execution_time', 300);
-
-        $internal_purpose = $request->has('internal_purpose') && $request->input('internal_purpose') == 'on' ? 1 : 0;
-
-        $formFields = $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'company' => 'nullable',
-            'email' => ['required', 'email', 'unique:clients,email'],
-            'phone' => 'nullable',
-            'country_code' => 'nullable',
-            'password' => $internal_purpose ? 'nullable|confirmed|min:6' : 'required|min:6',
-            'password_confirmation' => $internal_purpose ? 'nullable' : 'required_with:password|same:password',
-            'address' => 'nullable',
-            'city' => 'nullable',
-            'state' => 'nullable',
-            'country' => 'nullable',
-            'zip' => 'nullable',
-            'dob' => 'nullable',
-            'doj' => 'nullable',
-            'country_iso_code' => 'nullable',
-        ]);
-
-        $validator = Validator($formFields)->after(function ($validator) use ($request) {
-            $email = $request->input('email');
-            $existsInUsers = DB::table('users')->where('email', $email)->exists();
-            $existsInClients = DB::table('clients')->where('email', $email)->exists();
-
-            if ($existsInUsers || $existsInClients) {
-                $validator->errors()->add('email', 'The email has already been taken in users or clients.');
-            }
-        });
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $password = $request->input('password');
-        if (!$internal_purpose && $password) {
-            $formFields['password'] = bcrypt($password);
-        }
-
-        $formFields['internal_purpose'] = $internal_purpose;
-        $formFields['photo'] = $request->hasFile('profile')
-            ? $request->file('profile')->store('photos', 'public')
-            : 'photos/no-image.jpg';
-
-        if ($request->input('dob')) {
-            $dob = $request->input('dob');
-            $formFields['dob'] = format_date($dob, false, app('php_date_format'), 'Y-m-d');
-        }
-        if ($request->input('doj')) {
-            $doj = $request->input('doj');
-            $formFields['doj'] = format_date($doj, false, app('php_date_format'), 'Y-m-d');
-        }
-
-        $role_id = Role::where('name', 'client')->first()->id;
-        $workspace = Workspace::find(session()->get('workspace_id'));
-
-        $require_ev = isAdminOrHasAllDataAccess() && $request->has('require_ev') && $request->input('require_ev') == 0 ? 0 : 1;
-        $status = !$internal_purpose && isAdminOrHasAllDataAccess() && $request->has('status') && $request->input('status') == 1 ? 1 : 0;
-
-        if (!$internal_purpose && $require_ev == 0) {
-            $formFields['email_verified_at'] = now()->tz(config('app.timezone'));
-        }
-
-        $formFields['status'] = $status;
-        $formFields['admin_id'] = $adminId;
-
-        $client = Client::create($formFields);
-
-        try {
-            // Disable email sending: verification email skipped
-            $client->update(['email_verification_mail_sent' => 0]);
-
-            $workspace->clients()->attach($client->id);
-            $client->assignRole($role_id);
-
-            // Disable email sending: account creation email skipped
-            $client->update(['acct_create_mail_sent' => 0]);
-
-            Session::flash('message', 'Client created successfully.');
-            return response()->json(['error' => false, 'id' => $client->id]);
-
-        } catch (Throwable $e) {
-            $client->delete();
-            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created. Please check system configuration.']);
-        }
-    }
-
-
 //    public function store(Request $request)
 //    {
-//
 //        $adminId = getAdminIdByUserRole();
 //        ini_set('max_execution_time', 300);
+//
 //        $internal_purpose = $request->has('internal_purpose') && $request->input('internal_purpose') == 'on' ? 1 : 0;
+//
 //        $formFields = $request->validate([
 //            'first_name' => 'required',
 //            'last_name' => 'required',
@@ -171,9 +78,9 @@ class ClientController extends Controller
 //            'doj' => 'nullable',
 //            'country_iso_code' => 'nullable',
 //        ]);
+//
 //        $validator = Validator($formFields)->after(function ($validator) use ($request) {
 //            $email = $request->input('email');
-//
 //            $existsInUsers = DB::table('users')->where('email', $email)->exists();
 //            $existsInClients = DB::table('clients')->where('email', $email)->exists();
 //
@@ -185,16 +92,17 @@ class ClientController extends Controller
 //        if ($validator->fails()) {
 //            return response()->json(['errors' => $validator->errors()], 422);
 //        }
-//        if (!$internal_purpose && $request->input('password')) {
-//            $password = $request->input('password');
-//            $formFields['password'] = bcrypt($formFields['password']);
+//
+//        $password = $request->input('password');
+//        if (!$internal_purpose && $password) {
+//            $formFields['password'] = bcrypt($password);
 //        }
-//        $formFields['internal_purpose'] =  $internal_purpose;
-//        if ($request->hasFile('profile')) {
-//            $formFields['photo'] = $request->file('profile')->store('photos', 'public');
-//        } else {
-//            $formFields['photo'] = 'photos/no-image.jpg';
-//        }
+//
+//        $formFields['internal_purpose'] = $internal_purpose;
+//        $formFields['photo'] = $request->hasFile('profile')
+//            ? $request->file('profile')->store('photos', 'public')
+//            : 'photos/no-image.jpg';
+//
 //        if ($request->input('dob')) {
 //            $dob = $request->input('dob');
 //            $formFields['dob'] = format_date($dob, false, app('php_date_format'), 'Y-m-d');
@@ -203,52 +111,144 @@ class ClientController extends Controller
 //            $doj = $request->input('doj');
 //            $formFields['doj'] = format_date($doj, false, app('php_date_format'), 'Y-m-d');
 //        }
+//
 //        $role_id = Role::where('name', 'client')->first()->id;
 //        $workspace = Workspace::find(session()->get('workspace_id'));
+//
 //        $require_ev = isAdminOrHasAllDataAccess() && $request->has('require_ev') && $request->input('require_ev') == 0 ? 0 : 1;
 //        $status = !$internal_purpose && isAdminOrHasAllDataAccess() && $request->has('status') && $request->input('status') == 1 ? 1 : 0;
+//
 //        if (!$internal_purpose && $require_ev == 0) {
 //            $formFields['email_verified_at'] = now()->tz(config('app.timezone'));
 //        }
+//
 //        $formFields['status'] = $status;
 //        $formFields['admin_id'] = $adminId;
-//        // dd($formFields);
+//
 //        $client = Client::create($formFields);
+//
 //        try {
-//            if (!$internal_purpose && $require_ev == 1) {
-//                $client->notify(new VerifyEmail($client));
-//                $client->update(['email_verification_mail_sent' => 1]);
-//            } else {
-//                $client->update(['email_verification_mail_sent' => 0]);
-//            }
+//            // Disable email sending: verification email skipped
+//            $client->update(['email_verification_mail_sent' => 0]);
+//
 //            $workspace->clients()->attach($client->id);
 //            $client->assignRole($role_id);
-//            if (!$internal_purpose && isEmailConfigured()) {
-//                $account_creation_template = Template::where('type', 'email')
-//                    ->where('name', 'account_creation')
-//                    ->first();
-//                if (!$account_creation_template || ($account_creation_template->status !== 0)) {
-//                    $client->notify(new AccountCreation($client, $password));
-//                    $client->update(['acct_create_mail_sent' => 1]);
-//                } else {
-//                    $client->update(['acct_create_mail_sent' => 0]);
-//                }
-//            } else {
-//                $client->update(['acct_create_mail_sent' => 0]);
-//            }
+//
+//            // Disable email sending: account creation email skipped
+//            $client->update(['acct_create_mail_sent' => 0]);
+//
 //            Session::flash('message', 'Client created successfully.');
 //            return response()->json(['error' => false, 'id' => $client->id]);
-//        } catch (TransportExceptionInterface $e) {
-//            $client = Client::findOrFail($client->id);
-//            $client->delete();
-//            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created, please make sure email settings are oprational.']);
+//
 //        } catch (Throwable $e) {
-//            // Catch any other throwable, including non-Exception errors
-//            $client = Client::findOrFail($client->id);
 //            $client->delete();
-//            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created, please make sure email settings are oprational.']);
+//            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created. Please check system configuration.']);
 //        }
 //    }
+
+
+    public function store(Request $request)
+    {
+
+        $adminId = getAdminIdByUserRole();
+        ini_set('max_execution_time', 300);
+        $internal_purpose = $request->has('internal_purpose') && $request->input('internal_purpose') == 'on' ? 1 : 0;
+        $formFields = $request->validate([
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'company' => 'nullable',
+            'email' => ['required', 'email', 'unique:clients,email'],
+            'phone' => 'nullable',
+            'country_code' => 'nullable',
+            'password' => $internal_purpose ? 'nullable|confirmed|min:6' : 'required|min:6',
+            'password_confirmation' => $internal_purpose ? 'nullable' : 'required_with:password|same:password',
+            'address' => 'nullable',
+            'city' => 'nullable',
+            'state' => 'nullable',
+            'country' => 'nullable',
+            'zip' => 'nullable',
+            'dob' => 'nullable',
+            'doj' => 'nullable',
+            'country_iso_code' => 'nullable',
+        ]);
+        $validator = Validator($formFields)->after(function ($validator) use ($request) {
+            $email = $request->input('email');
+
+            $existsInUsers = DB::table('users')->where('email', $email)->exists();
+            $existsInClients = DB::table('clients')->where('email', $email)->exists();
+
+            if ($existsInUsers || $existsInClients) {
+                $validator->errors()->add('email', 'The email has already been taken in users or clients.');
+            }
+        });
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+        if (!$internal_purpose && $request->input('password')) {
+            $password = $request->input('password');
+            $formFields['password'] = bcrypt($formFields['password']);
+        }
+        $formFields['internal_purpose'] =  $internal_purpose;
+        if ($request->hasFile('profile')) {
+            $formFields['photo'] = $request->file('profile')->store('photos', 'public');
+        } else {
+            $formFields['photo'] = 'photos/no-image.jpg';
+        }
+        if ($request->input('dob')) {
+            $dob = $request->input('dob');
+            $formFields['dob'] = format_date($dob, false, app('php_date_format'), 'Y-m-d');
+        }
+        if ($request->input('doj')) {
+            $doj = $request->input('doj');
+            $formFields['doj'] = format_date($doj, false, app('php_date_format'), 'Y-m-d');
+        }
+        $role_id = Role::where('name', 'client')->first()->id;
+        $workspace = Workspace::find(session()->get('workspace_id'));
+        $require_ev = isAdminOrHasAllDataAccess() && $request->has('require_ev') && $request->input('require_ev') == 0 ? 0 : 1;
+        $status = !$internal_purpose && isAdminOrHasAllDataAccess() && $request->has('status') && $request->input('status') == 1 ? 1 : 0;
+        if (!$internal_purpose && $require_ev == 0) {
+            $formFields['email_verified_at'] = now()->tz(config('app.timezone'));
+        }
+        $formFields['status'] = $status;
+        $formFields['admin_id'] = $adminId;
+        // dd($formFields);
+        $client = Client::create($formFields);
+        try {
+            if (!$internal_purpose && $require_ev == 1) {
+                $client->notify(new VerifyEmail($client));
+                $client->update(['email_verification_mail_sent' => 1]);
+            } else {
+                $client->update(['email_verification_mail_sent' => 0]);
+            }
+            $workspace->clients()->attach($client->id);
+            $client->assignRole($role_id);
+            if (!$internal_purpose && isEmailConfigured()) {
+                $account_creation_template = Template::where('type', 'email')
+                    ->where('name', 'account_creation')
+                    ->first();
+                if (!$account_creation_template || ($account_creation_template->status !== 0)) {
+                    $client->notify(new AccountCreation($client, $password));
+                    $client->update(['acct_create_mail_sent' => 1]);
+                } else {
+                    $client->update(['acct_create_mail_sent' => 0]);
+                }
+            } else {
+                $client->update(['acct_create_mail_sent' => 0]);
+            }
+            Session::flash('message', 'Client created successfully.');
+            return response()->json(['error' => false, 'id' => $client->id]);
+        } catch (TransportExceptionInterface $e) {
+            $client = Client::findOrFail($client->id);
+            $client->delete();
+            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created, please make sure email settings are oprational.']);
+        } catch (Throwable $e) {
+            // Catch any other throwable, including non-Exception errors
+            $client = Client::findOrFail($client->id);
+            $client->delete();
+            return response()->json(['error' => true, 'message' => 'Client couldn\'t be created, please make sure email settings are oprational.']);
+        }
+    }
     /**
      * Display the specified resource.
      *

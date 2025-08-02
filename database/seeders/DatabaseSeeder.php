@@ -21,17 +21,17 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        $modules = ['activity_log'];
-        $actions = ['delete', 'manage'];
+//        $modules = ['activity_log'];
+//        $actions = ['delete', 'manage'];
 
         // Permission::create(['name' => 'all_data_access', 'guard_name' => 'client']);
 
-        foreach ($modules as $module) {
-            foreach ($actions as $action) {
-                $permissionName = "{$action}_{$module}";
-                Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
-            }
-        }
+//        foreach ($modules as $module) {
+//            foreach ($actions as $action) {
+//                $permissionName = "{$action}_{$module}";
+//                Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
+//            }
+//        }
 
         // Assign permissions to a role
         // $adminRole = Role::findByName('admin');

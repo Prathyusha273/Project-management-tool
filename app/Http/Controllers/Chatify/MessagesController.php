@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\vendor\Chatify;
+namespace App\Http\Controllers\Chatify;
 
 use App\Models\Task;
 use App\Models\User;
@@ -115,7 +115,7 @@ class MessagesController extends Controller
      */
     public function download($fileName)
     {
-        $filePath = config('chatify.attachments.folder') . '/' . $fileName;
+        $filePath = config('chatify.attachments.folder') . 'MessagesController.php/' . $fileName;
         if (Chatify::storage()->exists($filePath)) {
             return Chatify::storage()->download($filePath);
         }
@@ -152,7 +152,7 @@ class MessagesController extends Controller
                     // get attachment name
                     $attachment_title = $file->getClientOriginalName();
                     // upload attachment and store the new name
-                    $attachment = Str::uuid() . "." . $file->extension();
+                    $attachment = Str::uuid() . "Chatify" . $file->extension();
                     $file->storeAs(config('chatify.attachments.folder'), $attachment, config('chatify.storage_disk_name'));
                 } else {
                     $error->status = 1;
@@ -487,7 +487,7 @@ class MessagesController extends Controller
                         }
                     }
                     // upload
-                    $avatar = Str::uuid() . "." . $file->extension();
+                    $avatar = Str::uuid() . "Chatify" . $file->extension();
                     $update = User::where('id', Auth::user()->id)->update(['avatar' => $avatar]);
                     $file->storeAs(config('chatify.user_avatar.folder'), $avatar, config('chatify.storage_disk_name'));
                     $success = $update ? 1 : 0;

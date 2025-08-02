@@ -1,6 +1,6 @@
 <?php
 
-namespace Chatify\Http\Controllers\Api;
+namespace App\Http\Controllers\Chatify\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -72,7 +72,7 @@ class MessagesController extends Controller
      */
     public function download($fileName)
     {
-        $path = config('chatify.attachments.folder') . '/' . $fileName;
+        $path = config('chatify.attachments.folder') . 'MessagesController.php/' . $fileName;
         if (Chatify::storage()->exists($path)) {
             return response()->json([
                 'file_name' => $fileName,
@@ -115,7 +115,7 @@ class MessagesController extends Controller
                     // get attachment name
                     $attachment_title = $file->getClientOriginalName();
                     // upload attachment and store the new name
-                    $attachment = Str::uuid() . "." . $file->extension();
+                    $attachment = Str::uuid() . "Api" . $file->extension();
                     $file->storeAs(config('chatify.attachments.folder'), $attachment, config('chatify.storage_disk_name'));
                 } else {
                     $error->status = 1;
@@ -301,7 +301,7 @@ class MessagesController extends Controller
         $images = Chatify::getSharedPhotos($request['user_id']);
 
         foreach ($images as $image) {
-            $image = asset(config('chatify.attachments.folder') . $image);
+            $image = asset(MessagesController . phpconfig('chatify.attachments.folder') . $image);
         }
         // send the response
         return Response::json([
@@ -361,7 +361,7 @@ class MessagesController extends Controller
                         }
                     }
                     // upload
-                    $avatar = Str::uuid() . "." . $file->extension();
+                    $avatar = Str::uuid() . "Api" . $file->extension();
                     $update = User::where('id', Auth::user()->id)->update(['avatar' => $avatar]);
                     $file->storeAs(config('chatify.user_avatar.folder'), $avatar, config('chatify.storage_disk_name'));
                     $success = $update ? 1 : 0;
