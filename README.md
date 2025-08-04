@@ -26,7 +26,6 @@ Taskify SaaS is the ultimate solution for project management, task management, C
 - **Start & End Dates:** Set clear start and end dates for projects and tasks to keep everyone on track.
 - **Priority Levels:** Assign priority levels (e.g., High, Medium, Low) to tasks for better time management and focus.
 
-
 ### Global Accessibility
 - **Multi-Language Support:** Offer Taskify SaaS in multiple languages to cater to a global workforce.
 - **Multi-Timezone Support:** Display dates and times in the appropriate time zone for each user, ensuring clear communication across different locations.
@@ -38,10 +37,168 @@ Taskify SaaS is the ultimate solution for project management, task management, C
 - **Security Management:** Configure security settings like two-factor authentication, data encryption, and user session timeout for enhanced platform security.
 - **Audit Logs:** Track user activity logs for increased transparency and accountability.
 
+---
 
+## Installation
 
+### Prerequisites
+- PHP >= 8.x
+- Composer
+- MySQL (or compatible database)
+- Node.js and npm (for frontend assets)
+- [Laravel 10](https://laravel.com/docs/10.x/installation)
+
+### Steps
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Prathyusha273/Project-management-tool.git
+   cd Project-management-tool
+   ```
+
+2. **Install PHP dependencies:**
+   ```bash
+   composer install
+   ```
+
+3. **Install Node dependencies and build assets:**
+   ```bash
+   npm install
+   npm run build
+   ```
+
+4. **Set up your `.env` file:**
+   - Copy `.env.example` to `.env`
+   - Configure your database and other environment variables.
+
+5. **Run the installer:**
+   - Visit `/install` route in your browser to start the installation wizard.
+   - The installer will:
+     - Validate database connection.
+     - Import SQL dump (`taskify_saas.sql`).
+     - Create default admin user and workspace.
+
+6. **Migrate and seed the database (if needed):**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+7. **Link storage and clear caches:**
+   ```bash
+   php artisan storage:link
+   php artisan cache:clear
+   php artisan config:clear
+   php artisan route:clear
+   php artisan view:clear
+   ```
+
+8. **Start the development server:**
+   ```bash
+   php artisan serve
+   ```
+
+## Usage
+
+### Creating Projects
+- Navigate to the Projects section.
+- Click "Create Project."
+- Fill in details: Title, Status, Users, Clients, Tags, Description.
+- Submit the form; you will automatically be added as a participant.
+
+### Managing Tasks
+- Within a project, create tasks with titles, deadlines, priorities, and assignees.
+- Organize tasks visually via Kanban and Gantt charts.
+- Use comments and mentions for collaboration.
+
+### Workspace & Client Management
+- Create separate workspaces for teams or departments.
+- Add clients for each project, giving them portal access.
+
+### Reports & Analytics
+- Access project, task, and time tracking reports from the dashboard.
+
+### Integrations
+- Set up integrations for Google Calendar, Slack, WhatsApp, and more via the settings panel.
+
+### FAQ
+- **Multiple Projects:** The system supports multiple projects via dedicated workspaces.
+- **Security:** Data security is ensured via encryption, authentication, and regular backups.
+- **Integrations:** Integrate with popular productivity, communication, and file storage tools.
+
+## API Documentation
+
+### Notable Classes & Functions
+
+#### PHP Controllers
+- **InstallerController**
+  - `index()`: Handles installation view.
+  - `config_db(Request $request)`: Validates and updates DB config.
+  - `install(Request $request)`: Performs installation steps and seeds data.
+
+- **ProjectsController**
+  - `store()`: Creates new projects.
+  - `update()`: Updates projects and syncs relations.
+  - `getMindMapData($project)`: Builds project mind map data for visualization.
+  - `get_users(Request $request)`: Fetches users for mentions.
+
+- **TasksController**
+  - `store()`: Creates new tasks and assigns users.
+  - Handles custom fields, status timelines, and notifications.
+
+- **WorkspacesController**
+  - Handles creation, update, user/client assignment, notifications, and logs.
+
+#### Models
+- **Project, Task, User, Client, Workspace, Status, Tag, etc.**
+  - Standard Eloquent relationships for projects, tasks, clients, users, and workspaces.
+  - Methods for attaching users/clients, managing relations, tracking time, etc.
+
+#### JS Modules
+- **project-grid.js:** Handles Kanban view, filtering, sorting, and navigation.
+- **project-mind-map.js:** Manages mind map interactions.
+- **gantt-chart.js:** Processes and visualizes Gantt charts.
+- **project-information.js:** Handles project details, comments, and attachments.
+
+## Developer Guide
+
+### Architecture
+- **Backend:** Laravel 10 (MVC structure)
+- **Frontend:** Blade templates, Vue.js (if used), jQuery, Bootstrap
+- **Assets:** Managed via npm and Laravel Mix/Vite.
+- **Real-time:** Uses Pusher for notifications and chat.
+- **Integrations:** Google Calendar, Slack, WhatsApp, etc.
+
+### Contributing
+
+1. **Fork the repository.**
+2. **Create a new branch:**
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+3. **Make your changes.**
+4. **Test thoroughly.**
+5. **Submit a pull request with a detailed description.**
+
+#### Coding Standards
+- Follow PSR-12 for PHP.
+- Use ES6+ for JavaScript.
+- Write meaningful commit messages.
+
+#### Issue Reporting
+- Use GitHub Issues for bugs and enhancements.
+- Provide detailed steps, screenshots, and browser/version info.
+
+### Recommended Workflow
+- Pull latest changes from `main`.
+- Work on feature branches.
+- Run tests before pushing.
+- Submit PRs with clear documentation.
 
 ## Support
 
 For support, please contact info@infinitietech.com.
 
+---
+
+## License
+
+This project does not specify a license. Please add one if you intend to open source or distribute the project.
